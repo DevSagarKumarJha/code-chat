@@ -34,6 +34,14 @@ io.on("connection", (socket) => {
   socket.on("chat-message", (msg) => {
     socket.to(ROOM).emit("chat-message", msg);
   });
+
+  socket.on("typing", (username) => {
+    socket.to(ROOM).emit("typing", username);
+  });
+  
+  socket.on("stop-typing", (username) => {
+    socket.to(ROOM).emit("stop-typing", username);
+  });
 });
 
 app.get("/", (req, res) => {

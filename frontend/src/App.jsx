@@ -5,10 +5,12 @@ import "./App.css";
 import { connectWS } from "./ws";
 
 function App() {
+  const timer = useRef(null);
   const socket = useRef(null);
   const [showNamePopup, setShowNamePopUp] = useState(true);
   const [inputName, setInputName] = useState("");
-  const [username, setUsername] = useState("");
+  const [username, setusername] = useState("");
+  const [typers, setTypers] = useState([]);
 
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
@@ -16,22 +18,59 @@ function App() {
   useEffect(() => {
     socket.current = connectWS();
 
-    socket.current.on("room-notice", (username) => {
-      console.log(`${username} joined the group`);
-      const notice = {
-        id: Date.now() + Math.random(),
-        type: "system",
-        text: `${username} joined the group`,
-        time: Date.now(),
-      };
+      socket.current.on("room-notice", (username) => {
+        console.log(`${username} joined the group`);
+        const notice = {
+          id: Date.now() + Math.random(),
+          type: "system",
+          text: `${username} joined the group`,
+          time: Date.now(),
+        };
 
-      setMessages((prev) => [...prev, notice]);
-    });
+        setMessages((prev) => [...prev, notice]);
+      });
 
-    socket.current.on("chat-message", (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    });
+      socket.current.on("chat-message", (msg) => {
+        setMessages((prev) => [...prev, msg]);
+      });
+
+      socket.current.on("typing", (username) => {
+        setTypers((prev) => {
+          const isExist = prev.find((typer) => typer === username);
+          if (!isExist) {
+            return [...prev, username];
+          }
+
+          return prev;
+        });
+      });
+
+      socket.current.on("stop-typing", (username) => {
+        setTypers((prev) => prev.filter((typer) => typer !== username));
+      });
+
+    return () => {
+      socket.current.off("room-notice");
+      socket.current.off("chat-message");
+      socket.current.off("typing");
+      socket.current.off("stop-typing");
+    };
   }, []);
+
+  useEffect(() => {
+    if (text) {
+      socket.current.emit("typing", username);
+      clearTimeout(timer.current);
+    }
+
+    timer.current = setTimeout(() => {
+      socket.current.emit("stop-typing", username);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer.current);
+    };
+  }, [text, username]);
 
   const formatTimeStamp = (time) => {
     const d = new Date(time);
@@ -54,7 +93,7 @@ function App() {
     const name = inputName.trim();
     if (!name) return;
 
-    setUsername(name);
+    setusername(name);
     socket.current.emit("join-room", name);
     setShowNamePopUp(false);
   };
@@ -123,7 +162,13 @@ function App() {
               <div className="text-sm font-medium text-gray-400">
                 Realtime Group Chat
               </div>
-              <div className="text-xs text-gray-500">Someone is typing....</div>
+              {typers.length ? (
+                <p className="text-xs text-gray-500">
+                  {typers.join(", ")} is typing...
+                </p>
+              ) : (
+                ""
+              )}
             </div>
             <div className="text-sm text-gray-500">
               Signed in as{" "}
