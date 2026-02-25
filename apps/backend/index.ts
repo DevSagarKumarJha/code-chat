@@ -1,14 +1,31 @@
 import { createServer } from "http";
 import express from "express";
 import { Server } from "socket.io";
+import dotenv from "dotenv";
 
-const port = 8000;
+dotenv.config();
+
+const port = Number(process.env.PORT || 8000);
+const allowedOrigins = (
+  process.env.CORS_ORIGINS ||
+  "http://localhost:5173,https://code-chat-frontend-xi.vercel.app"
+)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://code-chat-frontend-xi.vercel.app/",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`Origin not allowed by CORS: ${origin}`));
+    },
+    methods: ["GET", "POST"],
   },
 });
 
