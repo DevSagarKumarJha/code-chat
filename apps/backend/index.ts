@@ -18,10 +18,7 @@ const io = new Server(server, {
 const ROOM = "group";
 
 io.on("connection", (socket) => {
-  print(`${socket.id} is connected`);
-
-  socket.on("join-room", async (username) => {
-    console.log(`${username} is joining the ${ROOM}`);
+  socket.on("join-room", async (username: string) => {
     await socket.join(ROOM);
 
     // send to all
@@ -31,15 +28,15 @@ io.on("connection", (socket) => {
     socket.to(ROOM).emit("room-notice", username);
   });
 
-  socket.on("chat-message", (msg) => {
+  socket.on("chat-message", (msg: string) => {
     socket.to(ROOM).emit("chat-message", msg);
   });
 
-  socket.on("typing", (username) => {
+  socket.on("typing", (username: string) => {
     socket.to(ROOM).emit("typing", username);
   });
   
-  socket.on("stop-typing", (username) => {
+  socket.on("stop-typing", (username: string) => {
     socket.to(ROOM).emit("stop-typing", username);
   });
 });
