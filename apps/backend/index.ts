@@ -2,6 +2,7 @@ import { createServer } from "http";
 import express from "express";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
+import cors from "cors";
 
 dotenv.config();
 
@@ -16,10 +17,14 @@ const allowedOrigins = (
   .filter(Boolean);
 
 const app = express();
-const server = createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: (origin, callback) => {
+
+// Enable CORS for all routes
+app.use(
+  cors({
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
         callback(null, true);
         return;
@@ -27,8 +32,11 @@ const io = new Server(server, {
       callback(new Error(`Origin not allowed by CORS: ${origin}`));
     },
     methods: ["GET", "POST"],
-  },
-});
+  }),
+);
+
+const server = createServer(app);
+const io = new Server(server);
 
 const ROOM = "group";
 
@@ -56,7 +64,7 @@ io.on("connection", (socket) => {
   });
 });
 
-app.get("/", (req, res) => {
+app.get("/", (req: express.Request, res: express.Response) => {
   res.send("<h1>Hello Socket<h1>");
 });
 
