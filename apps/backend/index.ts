@@ -16,27 +16,25 @@ const allowedOrigins = (
   .map((origin) => normalizeOrigin(origin.trim()))
   .filter(Boolean);
 
+console.log("Allowed origins:", allowedOrigins);
+
 const app = express();
 
 // Enable CORS for all routes
 app.use(
   cors({
-    origin: (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void,
-    ) => {
-      if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
-        callback(null, true);
-        return;
-      }
-      callback(new Error(`Origin not allowed by CORS: ${origin}`));
-    },
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   }),
 );
 
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+  },
+});
 
 const ROOM = "group";
 
