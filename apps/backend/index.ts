@@ -6,12 +6,13 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const port = Number(process.env.PORT || 8000);
+const normalizeOrigin = (value: string) => value.replace(/\/+$/, "");
 const allowedOrigins = (
   process.env.CORS_ORIGINS ||
   "http://localhost:5173,https://code-chat-frontend-xi.vercel.app"
 )
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin.trim()))
   .filter(Boolean);
 
 const app = express();
@@ -19,7 +20,7 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
         callback(null, true);
         return;
       }
