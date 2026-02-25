@@ -29,6 +29,8 @@ export function connectWS(): ChatSocket {
     import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:8000'
 
   return io(url, {
-    transports: ['websocket'],
+    transports: ['polling', 'websocket'],
+    timeout: 10000,
+    reconnectionAttempts: 5,
   })
 }
