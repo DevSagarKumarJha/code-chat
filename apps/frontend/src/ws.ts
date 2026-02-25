@@ -25,5 +25,5 @@ type ClientToServerEvents = {
 export type ChatSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 
 export function connectWS(): ChatSocket {
-  return io('http://localhost:8000')
+  return io('https://code-chat-backend.vercel.app/')
 }
