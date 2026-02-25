@@ -1,11 +1,8 @@
 import { createServer } from "http";
 import express from "express";
 import { Server } from "socket.io";
-import { print } from "./utilities/print.js";
-import dotenv from "dotenv";
 
-dotenv.config();
-const port = process.env.PORT || 3000;
+const port = 8000;
 
 const app = express();
 const server = createServer(app);
@@ -35,7 +32,7 @@ io.on("connection", (socket) => {
   socket.on("typing", (username: string) => {
     socket.to(ROOM).emit("typing", username);
   });
-  
+
   socket.on("stop-typing", (username: string) => {
     socket.to(ROOM).emit("stop-typing", username);
   });
@@ -46,5 +43,5 @@ app.get("/", (req, res) => {
 });
 
 server.listen(port, () => {
-  print(`Server is listening at http://localhost:${port}`);
+  console.log(`Server is listening at http://localhost:${port}`);
 });
